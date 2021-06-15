@@ -29,7 +29,7 @@ class App {
 
 		//Load background texture
 		let loader = new THREE.TextureLoader();
-		loader.load('../assets/img/bg.jpg', function (texture) {
+		loader.load('./assets/img/bg.jpg', function (texture) {
 			texture.minFilter = THREE.LinearFilter;
 			scene.background = texture;
 		});
@@ -37,13 +37,13 @@ class App {
 		//objects
 		patientObj = new THREE.Object3D();
 		let mtlLoader = new MTLLoader();
-		mtlLoader.setPath('../assets/models/');
+		mtlLoader.setPath('./assets/models/');
 		//load pen
 		mtlLoader.load('body.mtl', function (materials) {
 			materials.preload();
 			let objLoader = new OBJLoader();
 			objLoader.setMaterials(materials);
-			objLoader.setPath('../assets/models/');
+			objLoader.setPath('./assets/models/');
 			objLoader.load('body.obj', function (object) {
 				object.scale.set(1, 1, 1);
 				object.position.set(0, 0, 0);
@@ -56,7 +56,7 @@ class App {
 		raycaster = new THREE.Raycaster();
 
 		let fbxLoader = new FBXLoader();
-		fbxLoader.setPath('../assets/models/');
+		fbxLoader.setPath('./assets/models/');
 		fbxLoader.load(
 			'LightBulb_01.fbx',
 			(object) => {
@@ -72,7 +72,7 @@ class App {
 		)
 
 		fbxLoader = new FBXLoader();
-		fbxLoader.setPath('../assets/models/');
+		fbxLoader.setPath('./assets/models/');
 		fbxLoader.load(
 			'SplitPad_01.fbx',
 			(object) => {
