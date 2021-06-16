@@ -50174,7 +50174,7 @@
 				
 			let moonGlow = new Mesh( sphereGeom.clone(), customMaterial.clone() );
 			moonGlow.position.set(-19.5, 10.5, 10);
-			scene.add(moonGlow);
+			//scene.add(moonGlow);
 			
 			renderer.render(scene, camera);
 			//window.addEventListener( 'resize', onWindowResize, false );
