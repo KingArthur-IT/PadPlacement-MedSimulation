@@ -44,7 +44,7 @@ class App {
 			materials.preload();
 			let objLoader = new OBJLoader();
 			objLoader.setMaterials(materials);
-			objLoader.setPath('../assets/models/');
+			objLoader.setPath('./assets/models/');
 			objLoader.load('body.obj', function (object) {
 				object.scale.set(1, 1, 1);
 				object.position.set(0, 0, 0);
