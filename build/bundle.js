@@ -50084,7 +50084,8 @@
 			//light
 			light = new AmbientLight(0xffffff);
 			scene.add(light);
-			directionalLight = new DirectionalLight(0xffffff, 0.5);
+			directionalLight = new DirectionalLight(0xffffff, 0.4);
+			directionalLight.position.set(0, 0, 100);
 			scene.add(directionalLight);
 
 			//renderer
@@ -50173,7 +50174,7 @@
 				
 			let moonGlow = new Mesh( sphereGeom.clone(), customMaterial.clone() );
 			moonGlow.position.set(-19.5, 10.5, 10);
-			//scene.add(moonGlow);
+			scene.add(moonGlow);
 			
 			renderer.render(scene, camera);
 			//window.addEventListener( 'resize', onWindowResize, false );
