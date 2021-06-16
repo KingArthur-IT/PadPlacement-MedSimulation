@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'; 
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
@@ -43,7 +43,7 @@ class App {
 			materials.preload();
 			let objLoader = new OBJLoader();
 			objLoader.setMaterials(materials);
-			objLoader.setPath('./assets/models/');
+			objLoader.setPath('../assets/models/');
 			objLoader.load('body.obj', function (object) {
 				object.scale.set(1, 1, 1);
 				object.position.set(0, 0, 0);
@@ -88,6 +88,29 @@ class App {
 			}
 		)
 
+		var sphereGeom = new THREE.SphereGeometry(3, 32, 32);    
+		// create custom material from the shader code above
+		//   that is within specially labeled script tags
+		var customMaterial = new THREE.ShaderMaterial( 
+		{
+			uniforms: 
+			{ 
+				"c":   { type: "f", value: 0.0 },
+				"p":   { type: "f", value: 10.4 },
+				glowColor: { type: "c", value: new THREE.Color(0xffff00) },
+				viewVector: { type: "v3", value: camera.position }
+			},
+			vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+			fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+			side: THREE.FrontSide,
+			blending: THREE.AdditiveBlending,
+			transparent: true
+		}   );
+			
+		let moonGlow = new THREE.Mesh( sphereGeom.clone(), customMaterial.clone() );
+		moonGlow.position.set(-19.5, 10.5, 10);
+		//scene.add(moonGlow);
+		
 		renderer.render(scene, camera);
 		//window.addEventListener( 'resize', onWindowResize, false );
 		window.addEventListener('mousemove', onMouseMove, false)
