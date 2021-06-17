@@ -3,6 +3,7 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'; 
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 
 //scene
 let canvas, camera, scene, light, directionalLight, renderer;
@@ -46,7 +47,10 @@ let objectsParams = {
 	glowing: {
 		radius: 3,
 		segments: 16,
-		position : 	new THREE.Vector3(-19.7, 11.2, 10),
+		position: new THREE.Vector3(-18.7, 7, 10),
+		color: new THREE.Color(0xffd778),
+		base: -0.1,
+		pow: 10.0
 	},
 }
 
@@ -54,8 +58,8 @@ class App {
 	init() {
 		canvas = document.getElementById('canvas');
 		canvas.setAttribute('width', 	params.sceneWidth);
-		canvas.setAttribute('height', 	params.sceneHeight);
-
+		canvas.setAttribute('height', params.sceneHeight);
+		
 		//scene and camera
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera(40.0, params.sceneWidth / params.sceneHeight, 0.1, 5000);
@@ -140,31 +144,11 @@ class App {
 			wireframe: false
 		});	
 
-		//glowing obj
-		var sphereGeom = new THREE.SphereGeometry(
-			objectsParams.glowing.radius,
-			objectsParams.glowing.segments,
-			objectsParams.glowing.segments);
-		// create custom material from the shader code above
-		var glowMaterial = new THREE.ShaderMaterial( 
-		{
-			uniforms: 
-			{ 
-				"c":   { type: "f", value: -0.2 },
-				"p":   { type: "f", value: 10.0 },
-				glowColor: { type: "c", value: new THREE.Color(0xffff00) },
-				viewVector: { type: "v3", value: camera.position }
-			},
-			vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-			fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-			side: THREE.FrontSide,
-			blending: THREE.AdditiveBlending,
-			transparent: true
-		}   );
-			
-		glowObj = new THREE.Mesh( sphereGeom.clone(), glowMaterial.clone() );
-		glowObj.position.copy(objectsParams.glowing.position);
-		//scene.add(glowObj);
+		const gui = new GUI();
+		let intensity = gui.add(objectsParams.glowing, 'base', -0.1, 0.2);
+		intensity.onChange(function (value) {			
+			objectsParams.glowing.base = value;
+		});
 		
 		renderer.render(scene, camera);
 		//window.addEventListener( 'resize', onWindowResize, false );
@@ -206,8 +190,39 @@ function onWindowResize() {
 }
 
 function animate() {
+	createGlow();
 	requestAnimationFrame(animate);
 	renderer.render(scene, camera);
+}
+
+function createGlow() {
+	scene.remove(glowObj);
+	//glowing obj
+	var sphereGeom = new THREE.SphereGeometry(
+		objectsParams.glowing.radius,
+		objectsParams.glowing.segments,
+		objectsParams.glowing.segments);
+	
+	// create custom material from the shader code above
+	var glowMaterial = new THREE.ShaderMaterial( 
+	{
+		uniforms: 
+		{ 
+			"base":   { type: "f", value: objectsParams.glowing.base },
+			"p":   { type: "f", value: objectsParams.glowing.pow },
+			glowColor: { type: "c", value: objectsParams.glowing.color },
+			viewVector: { type: "v3", value: camera.position }
+		},
+		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+		side: THREE.FrontSide,
+		blending: THREE.AdditiveBlending,
+		transparent: true
+	}   );
+		
+	glowObj = new THREE.Mesh( sphereGeom.clone(), glowMaterial.clone() );
+	glowObj.position.copy(objectsParams.glowing.position);
+	scene.add(glowObj);
 }
 
 export default App;
