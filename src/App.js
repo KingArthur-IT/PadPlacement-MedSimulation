@@ -4,18 +4,32 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
-let canvas, camera, scene, light, directionalLight, renderer, patientObj, padMesh;
+//scene
+let canvas, camera, scene, light, directionalLight, renderer;
+//objects
+let patientObj, padMesh;
+//for pad projection moving
 let raycaster, mouse = new THREE.Vector2();
+//params
+let params = {
+	sceneWidth: 800,
+	sceneHeight: 600,
+	bgSrc: './assets/img/bg.jpg',
+	modelPath: './assets/models/',
+	patientObj: 'body.obj',
+	patientMtl: 'body.mtl',
+	lightBulbPbj: 'LightBulb_01.fbx'
+}
 
 class App {
 	init() {
 		canvas = document.getElementById('canvas');
-		canvas.setAttribute('width', 800);
-		canvas.setAttribute('height', 600);
+		canvas.setAttribute('width', 	params.sceneWidth);
+		canvas.setAttribute('height', 	params.sceneHeight);
 
 		//scene and camera
 		scene = new THREE.Scene();
-		camera = new THREE.PerspectiveCamera(40.0, 800 / 600, 0.1, 5000);
+		camera = new THREE.PerspectiveCamera(40.0, params.sceneWidth / params.sceneHeight, 0.1, 5000);
 		camera.position.set(0, 0, 100);
 		//light
 		light = new THREE.AmbientLight(0xffffff);
@@ -30,22 +44,23 @@ class App {
 
 		//Load background texture
 		let loader = new THREE.TextureLoader();
-		loader.load('./assets/img/bg.jpg', function (texture) {
+		loader.load(params.bgSrc, function (texture) {
 			texture.minFilter = THREE.LinearFilter;
-			scene.background = texture;
+			//scene.background = texture;
 		});
 
+		scene.background = new THREE.Color(0xd0d0d0)
 		//objects
 		patientObj = new THREE.Object3D();
 		let mtlLoader = new MTLLoader();
-		mtlLoader.setPath('./assets/models/');
+		mtlLoader.setPath(params.modelPath);
 		//load pen
-		mtlLoader.load('body.mtl', function (materials) {
+		mtlLoader.load(params.patientMtl, function (materials) {
 			materials.preload();
 			let objLoader = new OBJLoader();
 			objLoader.setMaterials(materials);
-			objLoader.setPath('./assets/models/');
-			objLoader.load('body.obj', function (object) {
+			objLoader.setPath(params.modelPath);
+			objLoader.load(params.patientObj, function (object) {
 				object.scale.set(1, 1, 1);
 				object.position.set(0, 0, 0);
 				object.rotation.set(Math.PI / 2.0, Math.PI / 2.0, 0);
@@ -57,9 +72,9 @@ class App {
 		raycaster = new THREE.Raycaster();
 
 		let fbxLoader = new FBXLoader();
-		fbxLoader.setPath('./assets/models/');
+		fbxLoader.setPath(params.modelPath);
 		fbxLoader.load(
-			'LightBulb_01.fbx',
+			params.lightBulbPbj,
 			(object) => {
 				object.position.set(-20, 10, 10)
 				scene.add(object);
@@ -73,7 +88,7 @@ class App {
 		)
 
 		fbxLoader = new FBXLoader();
-		fbxLoader.setPath('./assets/models/');
+		fbxLoader.setPath(params.modelPath);
 		fbxLoader.load(
 			'SplitPad_01.fbx',
 			(object) => {
@@ -125,15 +140,8 @@ function onMouseMove(event) {
 	// (-1 to +1) for both components
 	mouse.x = (event.clientX / 800) * 2 - 1;
 	mouse.y = - (event.clientY / 600) * 2 + 1;
-}
 
-function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function animate() {
+	scene.remove(padMesh)
 	// update the picking ray with the camera and mouse position
 	raycaster.setFromCamera(mouse, camera);
 	raycaster.layers.enableAll()
@@ -179,10 +187,20 @@ function animate() {
 		*/
 		//var decalMaterial = new THREE.MeshLambertMaterial({ color: 0xFF0000 });
 		
-		scene.remove(padMesh)
+		
 		padMesh = new THREE.Mesh(decalGeometry, decalMaterial);
 		scene.add(padMesh)
 	}
+}
+
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, camera);
