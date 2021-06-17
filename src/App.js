@@ -6,19 +6,48 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 //scene
 let canvas, camera, scene, light, directionalLight, renderer;
+let decalMaterial;
 //objects
-let patientObj, padMesh;
+let patientObj, padMesh, glowObj;
 //for pad projection moving
-let raycaster, mouse = new THREE.Vector2();
+let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
 //params
 let params = {
-	sceneWidth: 800,
-	sceneHeight: 600,
+	sceneWidth: 850,
+	sceneHeight: 650,
 	bgSrc: './assets/img/bg.jpg',
+	padPrjColor: 0x00ff00
+	
+}
+let objectsParams = {
 	modelPath: './assets/models/',
-	patientObj: 'body.obj',
-	patientMtl: 'body.mtl',
-	lightBulbPbj: 'LightBulb_01.fbx'
+	patient: {
+		patientObj: 'body.obj',
+		patientMtl: 'body.mtl',
+		scale : 	new THREE.Vector3(1, 1, 1),
+		position : 	new THREE.Vector3(0, 0, 0),
+		rotation : 	new THREE.Vector3(Math.PI / 2.0, Math.PI / 2.0, 0)
+	},
+	lightBulb: {
+		lightBulbObj: 'LightBulb_01.fbx',
+		scale : 	new THREE.Vector3(1, 1, 1),
+		position : 	new THREE.Vector3(-19, 6, 10),
+		rotation : 	new THREE.Vector3(0, 0, 0)
+	},
+	pad: {
+		padObj: 'SplitPad_01.fbx',
+		scale : 	new THREE.Vector3(1, 1, 1),
+		position : 	new THREE.Vector3(-20, -10, 10),
+		rotation : 	new THREE.Vector3(Math.PI / 2.0, 0, 0)
+	},
+	padPrjection: {
+		scale : 	new THREE.Vector3(3.5, 4.5, 10)
+	},
+	glowing: {
+		radius: 3,
+		segments: 16,
+		position : 	new THREE.Vector3(-19.7, 11.2, 10),
+	},
 }
 
 class App {
@@ -48,71 +77,81 @@ class App {
 			texture.minFilter = THREE.LinearFilter;
 			//scene.background = texture;
 		});
-
 		scene.background = new THREE.Color(0xd0d0d0)
+
 		//objects
 		patientObj = new THREE.Object3D();
 		let mtlLoader = new MTLLoader();
-		mtlLoader.setPath(params.modelPath);
-		//load pen
-		mtlLoader.load(params.patientMtl, function (materials) {
+		mtlLoader.setPath(objectsParams.modelPath);
+
+		//load patient body
+		mtlLoader.load(objectsParams.patient.patientMtl, function (materials) {
 			materials.preload();
 			let objLoader = new OBJLoader();
 			objLoader.setMaterials(materials);
-			objLoader.setPath(params.modelPath);
-			objLoader.load(params.patientObj, function (object) {
-				object.scale.set(1, 1, 1);
-				object.position.set(0, 0, 0);
-				object.rotation.set(Math.PI / 2.0, Math.PI / 2.0, 0);
+			objLoader.setPath(objectsParams.modelPath);
+			objLoader.load(objectsParams.patient.patientObj, function (object) {
+				object.scale.copy(objectsParams.patient.scale);
+				object.position.copy(objectsParams.patient.position);
+				object.rotation.setFromVector3(objectsParams.patient.rotation);
 				patientObj.add(object);
+				scene.add(patientObj);
 			});
-		});
-		scene.add(patientObj);
+		});		
 
-		raycaster = new THREE.Raycaster();
-
+		//light bulb
 		let fbxLoader = new FBXLoader();
-		fbxLoader.setPath(params.modelPath);
+		fbxLoader.setPath(objectsParams.modelPath);
 		fbxLoader.load(
-			params.lightBulbPbj,
+			objectsParams.lightBulb.lightBulbObj,
 			(object) => {
-				object.position.set(-20, 10, 10)
+				object.scale.copy(objectsParams.lightBulb.scale);
+				object.position.copy(objectsParams.lightBulb.position);
+				object.rotation.setFromVector3(objectsParams.lightBulb.rotation);
 				scene.add(object);
-			},
-			(xhr) => {
-				console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-			},
-			(error) => {
-				console.log(error);
 			}
 		)
 
+		//pad
 		fbxLoader = new FBXLoader();
-		fbxLoader.setPath(params.modelPath);
+		fbxLoader.setPath(objectsParams.modelPath);
 		fbxLoader.load(
-			'SplitPad_01.fbx',
+			objectsParams.pad.padObj,
 			(object) => {
-				object.position.set(-20, -10, 10)
-				object.rotation.set(Math.PI * 0.5, 0, 0)
+				object.scale.copy(objectsParams.pad.scale);
+				object.position.copy(objectsParams.pad.position);
+				object.rotation.setFromVector3(objectsParams.pad.rotation);
 				scene.add(object);
-			},
-			(xhr) => {
-				console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-			},
-			(error) => {
-				console.log(error);
 			}
 		)
+		
+		//const textureLoader = new THREE.TextureLoader();
+		//const decalDiffuse = textureLoader.load('textures/decal/decal-diffuse.png');	
+		//decal material
+		decalMaterial = new THREE.MeshPhongMaterial({
+			color: params.padPrjColor,
+			flatShading: false,
+			shininess: 30,
+			transparent: true,
+			depthTest: true,
+			depthWrite: false,
+			polygonOffset: true,
+			polygonOffsetFactor: - 4,
+			wireframe: false
+		});	
 
-		var sphereGeom = new THREE.SphereGeometry(3, 32, 32);    
+		//glowing obj
+		var sphereGeom = new THREE.SphereGeometry(
+			objectsParams.glowing.radius,
+			objectsParams.glowing.segments,
+			objectsParams.glowing.segments);
 		// create custom material from the shader code above
-		//   that is within specially labeled script tags
-		var customMaterial = new THREE.ShaderMaterial( 
+		var glowMaterial = new THREE.ShaderMaterial( 
 		{
 			uniforms: 
 			{ 
-				"c":   { type: "f", value: 0.0 },
-				"p":   { type: "f", value: 10.4 },
+				"c":   { type: "f", value: -0.2 },
+				"p":   { type: "f", value: 10.0 },
 				glowColor: { type: "c", value: new THREE.Color(0xffff00) },
 				viewVector: { type: "v3", value: camera.position }
 			},
@@ -123,9 +162,9 @@ class App {
 			transparent: true
 		}   );
 			
-		let moonGlow = new THREE.Mesh( sphereGeom.clone(), customMaterial.clone() );
-		moonGlow.position.set(-19.5, 10.5, 10);
-		//scene.add(moonGlow);
+		glowObj = new THREE.Mesh( sphereGeom.clone(), glowMaterial.clone() );
+		glowObj.position.copy(objectsParams.glowing.position);
+		//scene.add(glowObj);
 		
 		renderer.render(scene, camera);
 		//window.addEventListener( 'resize', onWindowResize, false );
@@ -136,58 +175,25 @@ class App {
 }
 
 function onMouseMove(event) {
-	// calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
-	mouse.x = (event.clientX / 800) * 2 - 1;
-	mouse.y = - (event.clientY / 600) * 2 + 1;
+	mouse.x = (event.clientX / params.sceneWidth) * 2 - 1;
+	mouse.y = - (event.clientY / params.sceneHeight) * 2 + 1;
 
 	scene.remove(padMesh)
-	// update the picking ray with the camera and mouse position
 	raycaster.setFromCamera(mouse, camera);
 	raycaster.layers.enableAll()
-	// calculate objects intersecting the picking ray
 	let intersects = []
 	raycaster.intersectObjects(patientObj.children, true, intersects);
 
 	if (intersects.length > 0) {
 		const direction = new THREE.Euler();
-		const size = new THREE.Vector3(3, 5, 10);
 
-		var decalGeometry = new DecalGeometry(
+		let decalGeometry = new DecalGeometry(
 			patientObj.children[0].children[0], // it has to be a THREE.Mesh
-			intersects[0].point, // THREE.Vector3 in world coordinates  
-			direction, // THREE.Vector3 specifying the orientation of the decal  
-			size // THREE.Vector3 specifying the size of the decal box  
+			intersects[0].point, 				// THREE.Vector3 in world coordinates  
+			direction, 							// THREE.Vector3 specifying the orientation of the decal  
+			objectsParams.padPrjection.scale	// THREE.Vector3 specifying the size of the decal box  
 		);
-
-		//const textureLoader = new THREE.TextureLoader();
-		//const decalDiffuse = textureLoader.load('textures/decal/decal-diffuse.png');
-		
-		var decalMaterial = new THREE.MeshPhongMaterial({
-			color: 0x00ff00,
-			flatShading: false,
-			shininess: 30,
-			transparent: true,
-			depthTest: true,
-			depthWrite: false,
-			polygonOffset: true,
-			polygonOffsetFactor: - 4,
-			wireframe: false
-		});
 	
-		
-		/* клвсс но цвет менять нельзя
-		var decalMaterial = new THREE.MeshNormalMaterial({
-			transparent: true,
-			depthTest: true,
-			depthWrite: false,
-			polygonOffset: true,
-			polygonOffsetFactor: -4,
-		});
-		*/
-		//var decalMaterial = new THREE.MeshLambertMaterial({ color: 0xFF0000 });
-		
-		
 		padMesh = new THREE.Mesh(decalGeometry, decalMaterial);
 		scene.add(padMesh)
 	}
@@ -200,8 +206,6 @@ function onWindowResize() {
 }
 
 function animate() {
-
-
 	requestAnimationFrame(animate);
 	renderer.render(scene, camera);
 }
