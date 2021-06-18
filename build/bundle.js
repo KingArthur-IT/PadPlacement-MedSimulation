@@ -53779,13 +53779,47 @@
 		raycaster.intersectObjects(patientObj.children, true, intersects);
 
 		if (intersects.length > 0) {
-			const direction = new Euler();
-
+			let direction = new Euler();
+			let padProjSize = new Vector3();
+			padProjSize.copy(objectsParams.padPrjection.scale);
+			//upper leg
+			if (mouse.x > 0.015 && mouse.x < 0.25 && mouse.y < 0.043 && mouse.y > -0.025) {
+				let deltaY = (0.043 - mouse.y) / (0.043 + 0.012);
+				padProjSize.y *= (1.0 - deltaY);
+			}
+			//bottom leg
+			if (mouse.x > 0.015 && mouse.x < 0.25 && mouse.y < -0.027 && mouse.y > -0.09) {
+				let deltaY = (-0.027 - mouse.y) / (-0.027 + 0.09);
+				padProjSize.y *= deltaY;
+			}
+			//upper body
+			if (mouse.x > -0.32 && mouse.x < -0.21 && mouse.y < 0.095 && mouse.y > 0.03) {
+				let deltaY = (0.095 - mouse.y) / (0.095 - 0.03);
+				padProjSize.y *= deltaY;
+			}
+			//lower body
+			if (mouse.x > -0.32 && mouse.x < -0.21 && mouse.y < -0.07 && mouse.y > -0.135) {
+				let deltaY = (-0.07 - mouse.y) / (-0.07 + 0.135);
+				padProjSize.y *= (1.0 - deltaY);
+			}
+			//upper arm
+			if (mouse.x > -0.32 && mouse.y > 0.095 + (mouse.x + 0.32) * 0.5) {
+				direction.z = 40.0 * Math.PI / 180.0;
+				direction.x = -10.0 * Math.PI / 180.0;
+				intersects[0].point.y = (intersects[0].point.x + 15) * (7.3 - 5.5) / (15.0 - 10.0) + 5.5;
+			}
+			//lower arm
+			if (mouse.x > -0.32 && mouse.y < -0.13 - (mouse.x + 0.32) * 0.5) {
+				direction.z = -40.0 * Math.PI / 180.0;
+				direction.x = 30.0 * Math.PI / 180.0;
+				intersects[0].point.y = (intersects[0].point.x + 15.15) * (6.7 - 8.17) / (15.15 - 10.75) - 6.7;
+			}			
+		
 			let decalGeometry = new DecalGeometry(
 				patientObj.children[0].children[0], // it has to be a THREE.Mesh
 				intersects[0].point, 				// THREE.Vector3 in world coordinates  
 				direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				objectsParams.padPrjection.scale	// THREE.Vector3 specifying the size of the decal box  
+				padProjSize	// THREE.Vector3 specifying the size of the decal box  
 			);
 		
 			padMesh = new Mesh(decalGeometry, decalMaterial);
