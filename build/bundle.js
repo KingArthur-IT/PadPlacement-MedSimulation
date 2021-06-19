@@ -53613,7 +53613,6 @@
 		} );
 
 	}
-	var GUI$1 = GUI;
 
 	//scene
 	let canvas, camera, scene, light, directionalLight, renderer;
@@ -53625,8 +53624,8 @@
 	//params
 	let params = {
 		sceneWidth: 850,
-		sceneHeight: 650,
-		bgSrc: './assets/img/bg.jpg',
+		sceneHeight: 450,
+		bgSrc: './assets/img/interaction_bg.jpg',
 		padPrjColor: 0x00ff00
 		
 	};
@@ -53635,33 +53634,94 @@
 		patient: {
 			patientObj: 'body.obj',
 			patientMtl: 'body.mtl',
-			scale : 	new Vector3(1, 1, 1),
-			position : 	new Vector3(0, 0, 0),
+			scale : 	new Vector3(2, 2, 2),
+			position : 	new Vector3(0, -2, 0),
 			rotation : 	new Vector3(Math.PI / 2.0, Math.PI / 2.0, 0)
 		},
 		lightBulb: {
 			lightBulbObj: 'LightBulb_01.fbx',
-			scale : 	new Vector3(1, 1, 1),
-			position : 	new Vector3(-19, 6, 10),
+			scale : 	new Vector3(1.5, 1.5, 1.5),
+			position : 	new Vector3(-37, 10, 10),
 			rotation : 	new Vector3(0, 0, 0)
 		},
 		pad: {
 			padObj: 'SplitPad_01.fbx',
-			scale : 	new Vector3(1, 1, 1),
-			position : 	new Vector3(-20, -10, 10),
+			scale : 	new Vector3(2, 2, 2),
+			position : 	new Vector3(-37, -25, 10),
 			rotation : 	new Vector3(Math.PI / 2.0, 0, 0)
 		},
 		padPrjection: {
-			scale : 	new Vector3(3.5, 4.5, 10)
+			scale : 	new Vector3(5, 7, 10)
 		},
 		glowing: {
-			radius: 3,
-			segments: 16,
-			position: new Vector3(-18.7, 7, 10),
-			color: new Color$1(0xffd778),
-			base: -0.1,
+			radius: 6,
+			segments: 32,
+			position: 	new Vector3(-35, 11, 10),
+			color: 		new Color$1(0xffd778),
+			base: 0.2, //0.2 - not glow; -0.1 - glow max light
 			pow: 10.0
+		}
+	};
+	//const params of bounds near two different body parts 
+	//to avoid the glow jumping of decal to another part of the body  
+	//e.g. near two legs or arm and body
+	const projectionBounds = {
+		upperLeg: {
+			xLeft: 0.0,
+			xRight: 0.25,
+			yTop: 0.0,
+			yBottom: -0.085
 		},
+		bottomLeg: {
+			xLeft: 0.0,
+			xRight: 0.25,
+			yTop: -0.09,
+			yBottom: -0.2
+		},
+		upperBody: {
+			xLeft: -0.48,
+			xRight: -0.31,
+			yTop: 0.13,
+			yBottom: 0.03
+		},
+		lowerBody: {
+			xLeft: -0.48,
+			xRight: -0.31,
+			yTop: -0.25,
+			yBottom: -0.34
+		},
+		upperArm: {
+			xLeft: -0.48,
+			yTop: 0.125,
+			yMoveScale: 0.3,
+			x1: -30.0, y1: 7.0,
+			x2: -24.0, y2: 10.0,
+			zAngle: 40.0 * Math.PI / 180.0,
+			xAngle: -10.0 * Math.PI / 180.0
+		},
+		lowerArm: {
+			xLeft: -0.48,
+			yTop: -0.33,
+			yMoveScale: 0.3,
+			x1: -30.0, y1: -15.0,
+			x2: -23, y2: -17.0,
+			zAngle: -40.0 * Math.PI / 180.0,
+			xAngle: 10.0 * Math.PI / 180.0
+		}
+	};
+	const correctPlaces = {
+		topBiceps: {
+			x: -0.35, y: 0.22
+		},
+		bottomBiceps: {
+			x: -0.35, y: -0.42
+		},
+		topSide: {
+			x: -0.26, y: 0.05
+		},
+		bottomSide: {
+			x: -0.26, y: -0.23
+		}
 	};
 
 	class App {
@@ -53689,9 +53749,8 @@
 			let loader = new TextureLoader();
 			loader.load(params.bgSrc, function (texture) {
 				texture.minFilter = LinearFilter;
-				//scene.background = texture;
+				scene.background = texture;
 			});
-			scene.background = new Color$1(0xd0d0d0);
 
 			//objects
 			patientObj = new Object3D();
@@ -53754,12 +53813,14 @@
 				wireframe: false
 			});	
 
-			const gui = new GUI$1();
-			let intensity = gui.add(objectsParams.glowing, 'base', -0.1, 0.2);
+			/*
+			const gui = new GUI();
+			let intensity = gui.add(objectsParams.glowing, 'base', -0.2, 0.2);
 			intensity.onChange(function (value) {			
 				objectsParams.glowing.base = value;
 			});
-			
+			*/
+
 			renderer.render(scene, camera);
 			//window.addEventListener( 'resize', onWindowResize, false );
 			window.addEventListener('mousemove', onMouseMove, false);
@@ -53769,50 +53830,91 @@
 	}
 
 	function onMouseMove(event) {
+		scene.remove(glowObj);
+		scene.remove(padMesh);
+
 		mouse.x = (event.clientX / params.sceneWidth) * 2 - 1;
 		mouse.y = - (event.clientY / params.sceneHeight) * 2 + 1;
-
-		scene.remove(padMesh);
+		
 		raycaster.setFromCamera(mouse, camera);
 		raycaster.layers.enableAll();
 		let intersects = [];
 		raycaster.intersectObjects(patientObj.children, true, intersects);
 
 		if (intersects.length > 0) {
+			//1.for adding pad projection to scene
 			let direction = new Euler();
 			let padProjSize = new Vector3();
 			padProjSize.copy(objectsParams.padPrjection.scale);
+		
+			//offset or/and rotation of decal geometry at the boundaries of two
+			//different body parts to avoid the glow jumping to another part of the body
 			//upper leg
-			if (mouse.x > 0.015 && mouse.x < 0.25 && mouse.y < 0.043 && mouse.y > -0.025) {
-				let deltaY = (0.043 - mouse.y) / (0.043 + 0.012);
+			if (mouse.x > projectionBounds.upperLeg.xLeft &&
+				mouse.x < projectionBounds.upperLeg.xRight &&
+				mouse.y > projectionBounds.upperLeg.yBottom &&
+				mouse.y < projectionBounds.upperLeg.yTop)
+			{
+				let deltaY = (projectionBounds.upperLeg.yTop - mouse.y) /
+					(projectionBounds.upperLeg.yTop - projectionBounds.upperLeg.yBottom);
 				padProjSize.y *= (1.0 - deltaY);
-			}
+			}			
 			//bottom leg
-			if (mouse.x > 0.015 && mouse.x < 0.25 && mouse.y < -0.027 && mouse.y > -0.09) {
-				let deltaY = (-0.027 - mouse.y) / (-0.027 + 0.09);
+			if (mouse.x > projectionBounds.bottomLeg.xLeft &&
+				mouse.x < projectionBounds.bottomLeg.xRight &&
+				mouse.y > projectionBounds.bottomLeg.yBottom &&
+				mouse.y < projectionBounds.bottomLeg.yTop)
+			{
+				let deltaY = (projectionBounds.bottomLeg.yTop - mouse.y) /
+					(projectionBounds.bottomLeg.yTop - projectionBounds.bottomLeg.yBottom);
 				padProjSize.y *= deltaY;
-			}
+			}		
 			//upper body
-			if (mouse.x > -0.32 && mouse.x < -0.21 && mouse.y < 0.095 && mouse.y > 0.03) {
-				let deltaY = (0.095 - mouse.y) / (0.095 - 0.03);
+			if (mouse.x > projectionBounds.upperBody.xLeft &&
+				mouse.x < projectionBounds.upperBody.xRight &&
+				mouse.y > projectionBounds.upperBody.yBottom &&
+				mouse.y < projectionBounds.upperBody.yTop)
+			{
+				let deltaY = (projectionBounds.upperBody.yTop - mouse.y) /
+					(projectionBounds.upperBody.yTop - projectionBounds.upperBody.yBottom);
 				padProjSize.y *= deltaY;
-			}
+			}		
 			//lower body
-			if (mouse.x > -0.32 && mouse.x < -0.21 && mouse.y < -0.07 && mouse.y > -0.135) {
-				let deltaY = (-0.07 - mouse.y) / (-0.07 + 0.135);
+			if (mouse.x > projectionBounds.lowerBody.xLeft &&
+				mouse.x < projectionBounds.lowerBody.xRight &&
+				mouse.y > projectionBounds.lowerBody.yBottom &&
+				mouse.y < projectionBounds.lowerBody.yTop)
+			{
+				let deltaY = (projectionBounds.lowerBody.yTop - mouse.y) /
+					(projectionBounds.lowerBody.yTop - projectionBounds.lowerBody.yBottom);
 				padProjSize.y *= (1.0 - deltaY);
 			}
 			//upper arm
-			if (mouse.x > -0.32 && mouse.y > 0.095 + (mouse.x + 0.32) * 0.5) {
-				direction.z = 40.0 * Math.PI / 180.0;
-				direction.x = -10.0 * Math.PI / 180.0;
-				intersects[0].point.y = (intersects[0].point.x + 15) * (7.3 - 5.5) / (15.0 - 10.0) + 5.5;
-			}
+			if (mouse.x > projectionBounds.upperArm.xLeft &&
+				mouse.y > projectionBounds.upperArm.yTop +
+				(mouse.x - projectionBounds.upperArm.xLeft) * projectionBounds.upperArm.yMoveScale)
+			{
+				direction.z = projectionBounds.upperArm.zAngle;
+				direction.x = projectionBounds.upperArm.xAngle;
+
+				let x1 = projectionBounds.upperArm.x1,
+					y1 = projectionBounds.upperArm.y1,
+					x2 = projectionBounds.upperArm.x2,
+					y2 = projectionBounds.upperArm.y2;
+				intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
+			}		
 			//lower arm
-			if (mouse.x > -0.32 && mouse.y < -0.13 - (mouse.x + 0.32) * 0.5) {
-				direction.z = -40.0 * Math.PI / 180.0;
-				direction.x = 30.0 * Math.PI / 180.0;
-				intersects[0].point.y = (intersects[0].point.x + 15.15) * (6.7 - 8.17) / (15.15 - 10.75) - 6.7;
+			if (mouse.x > projectionBounds.lowerArm.xLeft &&
+				mouse.y < projectionBounds.lowerArm.yTop -
+				(mouse.x - projectionBounds.lowerArm.xLeft) * projectionBounds.lowerArm.yMoveScale)
+			{
+				direction.z = projectionBounds.lowerArm.zAngle;
+				direction.x = projectionBounds.lowerArm.xAngle;
+				let x1 = projectionBounds.lowerArm.x1,
+					y1 = projectionBounds.lowerArm.y1,
+					x2 = projectionBounds.lowerArm.x2,
+					y2 = projectionBounds.lowerArm.y2;
+				intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
 			}			
 		
 			let decalGeometry = new DecalGeometry(
@@ -53824,11 +53926,24 @@
 		
 			padMesh = new Mesh(decalGeometry, decalMaterial);
 			scene.add(padMesh);
+
+			//2.for light bulb glowing
+			let distance1 = CalculateDistance(mouse.x, mouse.y,
+				correctPlaces.topBiceps.x, correctPlaces.topBiceps.y);
+			let distance2 = CalculateDistance(mouse.x, mouse.y,
+				correctPlaces.bottomBiceps.x, correctPlaces.bottomBiceps.y);
+			let distance3 = CalculateDistance(mouse.x, mouse.y,
+				correctPlaces.topSide.x, correctPlaces.topSide.y);
+			let distance4 = CalculateDistance(mouse.x, mouse.y,
+				correctPlaces.bottomSide.x, correctPlaces.bottomSide.y);
+			let distance = FindMin(distance1, distance2, distance3, distance4);
+			distance = distance > 0.3 ? 0.3 : distance;
+			objectsParams.glowing.base = distance - 0.15;
+			createGlow();
 		}
 	}
 
 	function animate() {
-		createGlow();
 		requestAnimationFrame(animate);
 		renderer.render(scene, camera);
 	}
@@ -53861,6 +53976,19 @@
 		glowObj = new Mesh( sphereGeom.clone(), glowMaterial.clone() );
 		glowObj.position.copy(objectsParams.glowing.position);
 		scene.add(glowObj);
+	}
+
+	function CalculateDistance(x1, y1, x2, y2) {
+		return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	}
+
+	function FindMin(a, b, c, d) {
+		let rezult = a;
+		if (b < rezult) rezult = b;
+		if (c < rezult) rezult = c;
+		if (d < rezult) rezult = d;
+
+		return rezult;
 	}
 
 	const app = new App();
