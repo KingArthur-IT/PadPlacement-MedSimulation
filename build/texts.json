@@ -1,0 +1,6 @@
+popupData = `{
+    "introTitle" : "Message", 
+    "introText" : "Click the OK button to grab the pad and start moving it. Click the mouse button to place the pad in the selected location.",
+    "setPadTitle": "Message",
+    "setPadText": "Good work! The split pad is now positioned properly. Click OK to continue."
+}`

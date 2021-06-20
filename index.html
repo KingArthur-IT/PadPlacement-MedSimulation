@@ -13,10 +13,57 @@
         canvas{
             background-color: #000;
         }
+        #popupTitle{
+            left: 285px;
+            top: 131px;
+            font-size: 11px;
+            color: #fff;
+            display: none;
+        }
+        #popupText{
+            left: 285px;
+            top: 160px;
+            font-size: 11px;
+            text-align: justify;
+            width: 275px;
+            resize: none;
+            display: none;
+        }
+        #popupBtn{
+            position: absolute;
+            background-color: rgb(122, 122, 122);
+            border: 2px solid rgb(122, 122, 122);
+            transition: border 0.3s ease-in;
+            cursor: pointer;
+            color: #fff;
+            padding: 2px;
+            border-radius: 5px;
+            letter-spacing: .5px;
+            left: 370px;
+            top: 258px;
+            font-size: 11px;
+            width: 100px;
+            display: none;
+        }
+        .interface-text{
+            position: absolute;
+            background-color: transparent;
+            border: none;
+            letter-spacing: .5px;
+            outline: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    <!--popup-->
+    <input type="text" id="popupTitle" value="Message" class="interface-text" readonly />
+    <textarea id="popupText" cols="30" rows="10" class="interface-text" readonly>
+    </textarea>
+    <input type="button" id="popupBtn" value="Ok" />
+    <!--JSON-->
+    <script src="./build/texts.json"></script>
+    <!--Shader Code-->
     <script id="vertexShader" type="x-shader/x-vertex">
         uniform vec3 viewVector;
         uniform float base;
@@ -40,6 +87,7 @@
             gl_FragColor = vec4( glow, 1.0 );
         }
     </script>
+    <!--Main Script-->
     <script src="./build/bundle.js"></script>
 </body>
 </html>

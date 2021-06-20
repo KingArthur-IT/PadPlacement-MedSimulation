@@ -3,22 +3,30 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'; 
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 
 //scene
 let canvas, camera, scene, light, directionalLight, renderer;
-let decalMaterial;
+//decal
+let decalMaterial, decalTextureMaterial, decalTexture, decalGeometry;
 //objects
 let patientObj, padMesh, glowObj;
+let isPadMeshOnScene = false;
 //for pad projection moving
 let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+//popup
+let popupPlaneMesh,
+	popupBtn = document.getElementById('popupBtn'),
+	popupTexts = JSON.parse(popupData),
+	popupShowCount = 0;
 //params
 let params = {
 	sceneWidth: 850,
 	sceneHeight: 450,
 	bgSrc: './assets/img/interaction_bg.jpg',
-	padPrjColor: 0x00ff00
-	
+	popupSrc: './assets/img/popup.png',
+	padTextureSrc: './assets/img/pad.png',
+	padPrjColor: 0x00ff00,
+	isActive: false
 }
 let objectsParams = {
 	modelPath: './assets/models/',
@@ -189,8 +197,6 @@ class App {
 			}
 		)
 		
-		//const textureLoader = new THREE.TextureLoader();
-		//const decalDiffuse = textureLoader.load('textures/decal/decal-diffuse.png');	
 		//decal material
 		decalMaterial = new THREE.MeshPhongMaterial({
 			color: params.padPrjColor,
@@ -202,27 +208,45 @@ class App {
 			polygonOffset: true,
 			polygonOffsetFactor: - 4,
 			wireframe: false
-		});	
-
-		/*
-		const gui = new GUI();
-		let intensity = gui.add(objectsParams.glowing, 'base', -0.2, 0.2);
-		intensity.onChange(function (value) {			
-			objectsParams.glowing.base = value;
 		});
-		*/
+
+		loader = new THREE.TextureLoader();
+		decalTexture = loader.load(params.padTextureSrc, function (texture) {
+			texture.minFilter = THREE.LinearFilter;
+		});
+	
+		decalTextureMaterial = new THREE.MeshPhongMaterial({
+			map: decalTexture,
+			flatShading: false,
+			shininess: 30,
+			transparent: true,
+			depthTest: true,
+			depthWrite: false,
+			polygonOffset: true,
+			polygonOffsetFactor: - 4,
+			wireframe: false
+		});
+
+		//popup
+		createPopupPlane();
+		addPopup();
 
 		renderer.render(scene, camera);
 		//window.addEventListener( 'resize', onWindowResize, false );
-		window.addEventListener('mousemove', onMouseMove, false)
+		canvas.addEventListener('mousemove', onMouseMove, false);
+		canvas.addEventListener('mousedown', onMouseDown, false);
+		popupBtn.addEventListener('click', removePopup, false);
 
 		animate();
 	}
 }
 
 function onMouseMove(event) {
+	if (!params.isActive) return;
+
 	scene.remove(glowObj);
 	scene.remove(padMesh);
+	isPadMeshOnScene = false;
 
 	mouse.x = (event.clientX / params.sceneWidth) * 2 - 1;
 	mouse.y = - (event.clientY / params.sceneHeight) * 2 + 1;
@@ -308,7 +332,7 @@ function onMouseMove(event) {
 			intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
 		}			
 	
-		let decalGeometry = new DecalGeometry(
+		decalGeometry = new DecalGeometry(
 			patientObj.children[0].children[0], // it has to be a THREE.Mesh
 			intersects[0].point, 				// THREE.Vector3 in world coordinates  
 			direction, 							// THREE.Vector3 specifying the orientation of the decal  
@@ -316,7 +340,8 @@ function onMouseMove(event) {
 		);
 	
 		padMesh = new THREE.Mesh(decalGeometry, decalMaterial);
-		scene.add(padMesh)
+		scene.add(padMesh);
+		isPadMeshOnScene = true;
 
 		//2.for light bulb glowing
 		let distance1 = CalculateDistance(mouse.x, mouse.y,
@@ -332,6 +357,15 @@ function onMouseMove(event) {
 		objectsParams.glowing.base = distance - 0.15;
 		createGlow();
 	}
+}
+
+function onMouseDown() {
+	if (!isPadMeshOnScene) return;
+	scene.remove(padMesh);
+	padMesh = new THREE.Mesh(decalGeometry, decalTextureMaterial);
+	scene.add(padMesh);
+	params.isActive = false;
+	setTimeout(addPopup, 2000);
 }
 
 function onWindowResize() {
@@ -386,6 +420,47 @@ function FindMin(a, b, c, d) {
 	if (d < rezult) rezult = d;
 
 	return rezult;
+}
+
+function createPopupPlane() {
+	const popupPlane = new THREE.PlaneGeometry(params.sceneWidth, params.sceneHeight, 10.0);
+	const loader = new THREE.TextureLoader();
+	const popupMaterial = new THREE.MeshBasicMaterial({
+		map: loader.load(params.popupSrc, function (texture) {
+			texture.minFilter = THREE.LinearFilter; }),
+		transparent: true
+	});    
+	popupPlaneMesh = new THREE.Mesh(popupPlane, popupMaterial);
+	popupPlaneMesh.scale.set(0.1, 0.1, 0.1)
+	popupPlaneMesh.position.z = 10;
+}
+
+function addPopup() {
+	scene.add(popupPlaneMesh);
+	params.isActive = false;
+	//interface
+	document.getElementById('popupTitle').style.display = 'block';
+	document.getElementById('popupText').style.display = 'block';
+	popupBtn.style.display = 'block';
+	if (popupShowCount == 0) {
+		document.getElementById('popupTitle').value = popupTexts.introTitle;
+		document.getElementById('popupText').value = popupTexts.introText;
+	}
+	if (popupShowCount > 0) {
+		document.getElementById('popupTitle').value = popupTexts.setPadTitle;
+		document.getElementById('popupText').value = popupTexts.setPadText;
+	}
+
+	popupShowCount++;
+}
+
+function removePopup() {
+	scene.remove(popupPlaneMesh);
+	params.isActive = true;
+	//interface
+	document.getElementById('popupTitle').style.display = 'none';
+	document.getElementById('popupText').style.display = 'none';
+	popupBtn.style.display = 'none';
 }
 
 export default App;
