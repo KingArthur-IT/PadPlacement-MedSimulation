@@ -50077,11 +50077,12 @@
 	let isPadMeshOnScene = false;
 	//for pad projection moving
 	let raycaster = new Raycaster(), mouse = new Vector2();
+	let intersectPoint = new Vector3(0, 0, 0);
 	//popup
 	let popupPlaneMesh,
 		popupBtn = document.getElementById('popupBtn'),
 		popupTexts = JSON.parse(popupData),
-		popupShowCount = 0;
+		popupRezult;
 	//params
 	let params = {
 		sceneWidth: 850,
@@ -50114,7 +50115,9 @@
 			rotation : 	new Vector3(Math.PI / 2.0, 0, 0)
 		},
 		padPrjection: {
-			scale : 	new Vector3(5, 7, 10)
+			scale: 			new Vector3(5, 7, 10),
+			currentsize: 	new Vector3(5, 7, 10),
+			direction: 		new Euler(0, 0, 0)
 		},
 		glowing: {
 			radius: 6,
@@ -50155,6 +50158,7 @@
 		},
 		upperArm: {
 			xLeft: -0.48,
+			xRight: -0.12,
 			yTop: 0.125,
 			yMoveScale: 0.3,
 			x1: -30.0, y1: 7.0,
@@ -50163,7 +50167,8 @@
 			xAngle: -10.0 * Math.PI / 180.0
 		},
 		lowerArm: {
-			xLeft: -0.48,
+			xLeft: -0.48,		
+			xRight: -0.12,
 			yTop: -0.33,
 			yMoveScale: 0.3,
 			x1: -30.0, y1: -15.0,
@@ -50173,17 +50178,15 @@
 		}
 	};
 	const correctPlaces = {
-		topBiceps: {
-			x: -0.35, y: 0.22
-		},
-		bottomBiceps: {
-			x: -0.35, y: -0.42
-		},
-		topSide: {
-			x: -0.26, y: 0.05
-		},
-		bottomSide: {
-			x: -0.26, y: -0.23
+		topBiceps: 		new Vector3(-24.0, 10.0, 1.0),
+		bottomBiceps: 	new Vector3(-24.0, -16.5, 0.8),
+		topSide: 		new Vector3(-17.0, 1.0, 4.0),
+		bottomSide: 	new Vector3(-17.0, -7.5, 4.0),
+		radius: 5.0
+	};
+	const lightIntensityPoint = {
+		chin: {
+			x: -0.65, y: -0.1
 		}
 	};
 
@@ -50321,10 +50324,10 @@
 		raycaster.intersectObjects(patientObj.children, true, intersects);
 
 		if (intersects.length > 0) {
+			intersectPoint.copy(intersects[0].point);
 			//1.for adding pad projection to scene
-			let direction = new Euler();
-			let padProjSize = new Vector3();
-			padProjSize.copy(objectsParams.padPrjection.scale);
+			objectsParams.padPrjection.direction = new Euler(0, 0, 0);
+			objectsParams.padPrjection.currentsize.copy(objectsParams.padPrjection.scale);
 		
 			//offset or/and rotation of decal geometry at the boundaries of two
 			//different body parts to avoid the glow jumping to another part of the body
@@ -50336,7 +50339,7 @@
 			{
 				let deltaY = (projectionBounds.upperLeg.yTop - mouse.y) /
 					(projectionBounds.upperLeg.yTop - projectionBounds.upperLeg.yBottom);
-				padProjSize.y *= (1.0 - deltaY);
+				objectsParams.padPrjection.currentsize.y *= (1.0 - deltaY);
 			}			
 			//bottom leg
 			if (mouse.x > projectionBounds.bottomLeg.xLeft &&
@@ -50346,7 +50349,7 @@
 			{
 				let deltaY = (projectionBounds.bottomLeg.yTop - mouse.y) /
 					(projectionBounds.bottomLeg.yTop - projectionBounds.bottomLeg.yBottom);
-				padProjSize.y *= deltaY;
+				objectsParams.padPrjection.currentsize.y *= deltaY;
 			}		
 			//upper body
 			if (mouse.x > projectionBounds.upperBody.xLeft &&
@@ -50356,7 +50359,7 @@
 			{
 				let deltaY = (projectionBounds.upperBody.yTop - mouse.y) /
 					(projectionBounds.upperBody.yTop - projectionBounds.upperBody.yBottom);
-				padProjSize.y *= deltaY;
+				objectsParams.padPrjection.currentsize.y *= deltaY;
 			}		
 			//lower body
 			if (mouse.x > projectionBounds.lowerBody.xLeft &&
@@ -50366,41 +50369,43 @@
 			{
 				let deltaY = (projectionBounds.lowerBody.yTop - mouse.y) /
 					(projectionBounds.lowerBody.yTop - projectionBounds.lowerBody.yBottom);
-				padProjSize.y *= (1.0 - deltaY);
+				objectsParams.padPrjection.currentsize.y *= (1.0 - deltaY);
 			}
 			//upper arm
 			if (mouse.x > projectionBounds.upperArm.xLeft &&
 				mouse.y > projectionBounds.upperArm.yTop +
 				(mouse.x - projectionBounds.upperArm.xLeft) * projectionBounds.upperArm.yMoveScale)
 			{
-				direction.z = projectionBounds.upperArm.zAngle;
-				direction.x = projectionBounds.upperArm.xAngle;
+				objectsParams.padPrjection.direction.z = projectionBounds.upperArm.zAngle;
+				objectsParams.padPrjection.direction.x = projectionBounds.upperArm.xAngle;
 
 				let x1 = projectionBounds.upperArm.x1,
 					y1 = projectionBounds.upperArm.y1,
 					x2 = projectionBounds.upperArm.x2,
 					y2 = projectionBounds.upperArm.y2;
-				intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
+				if (mouse.x < projectionBounds.upperArm.xRight)
+					intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
 			}		
 			//lower arm
 			if (mouse.x > projectionBounds.lowerArm.xLeft &&
 				mouse.y < projectionBounds.lowerArm.yTop -
 				(mouse.x - projectionBounds.lowerArm.xLeft) * projectionBounds.lowerArm.yMoveScale)
 			{
-				direction.z = projectionBounds.lowerArm.zAngle;
-				direction.x = projectionBounds.lowerArm.xAngle;
+				objectsParams.padPrjection.direction.z = projectionBounds.lowerArm.zAngle;
+				objectsParams.padPrjection.direction.x = projectionBounds.lowerArm.xAngle;
 				let x1 = projectionBounds.lowerArm.x1,
 					y1 = projectionBounds.lowerArm.y1,
 					x2 = projectionBounds.lowerArm.x2,
 					y2 = projectionBounds.lowerArm.y2;
-				intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
+				if (mouse.x < projectionBounds.lowerArm.xRight)
+					intersects[0].point.y = (intersects[0].point.x - x1) * (y2 - y1) / (x2 - x1) + y1;
 			}			
 		
 			decalGeometry = new DecalGeometry(
 				patientObj.children[0].children[0], // it has to be a THREE.Mesh
 				intersects[0].point, 				// THREE.Vector3 in world coordinates  
-				direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				padProjSize	// THREE.Vector3 specifying the size of the decal box  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
 			);
 		
 			padMesh = new Mesh(decalGeometry, decalMaterial);
@@ -50408,27 +50413,91 @@
 			isPadMeshOnScene = true;
 
 			//2.for light bulb glowing
-			let distance1 = CalculateDistance(mouse.x, mouse.y,
-				correctPlaces.topBiceps.x, correctPlaces.topBiceps.y);
-			let distance2 = CalculateDistance(mouse.x, mouse.y,
-				correctPlaces.bottomBiceps.x, correctPlaces.bottomBiceps.y);
-			let distance3 = CalculateDistance(mouse.x, mouse.y,
-				correctPlaces.topSide.x, correctPlaces.topSide.y);
-			let distance4 = CalculateDistance(mouse.x, mouse.y,
-				correctPlaces.bottomSide.x, correctPlaces.bottomSide.y);
-			let distance = FindMin(distance1, distance2, distance3, distance4);
-			distance = distance > 0.3 ? 0.3 : distance;
-			objectsParams.glowing.base = distance - 0.15;
+			let distance = CalculateDistance(mouse.x, mouse.y,
+				lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
+			objectsParams.glowing.base = distance * 0.2 - 0.1;
 			createGlow();
 		}
 	}
 
 	function onMouseDown() {
 		if (!isPadMeshOnScene) return;
+		params.isActive = false;
 		scene.remove(padMesh);
+		popupRezult = false;
+		
+		let distance;
+		//top biceps
+		distance = CalculateDistance(intersectPoint.x, intersectPoint.y,
+			correctPlaces.topBiceps.x, correctPlaces.topBiceps.y);
+		if (distance < correctPlaces.radius) {
+			intersectPoint.copy(correctPlaces.topBiceps);
+			decalGeometry = new DecalGeometry(
+				patientObj.children[0].children[0], // it has to be a THREE.Mesh
+				intersectPoint, 				// THREE.Vector3 in world coordinates  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
+			);
+			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
+			scene.add(padMesh);
+			popupRezult = true;
+			setTimeout(addPopup, 2000);
+			return;
+		}
+		//bottom biceps
+		distance = CalculateDistance(intersectPoint.x, intersectPoint.y,
+			correctPlaces.bottomBiceps.x, correctPlaces.bottomBiceps.y);
+		if (distance < correctPlaces.radius) {
+			intersectPoint.copy(correctPlaces.bottomBiceps);
+			decalGeometry = new DecalGeometry(
+				patientObj.children[0].children[0], // it has to be a THREE.Mesh
+				intersectPoint, 				// THREE.Vector3 in world coordinates  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
+			);
+			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
+			scene.add(padMesh);
+			popupRezult = true;
+			setTimeout(addPopup, 2000);
+			return;
+		}
+		//topSide
+		distance = CalculateDistance(intersectPoint.x, intersectPoint.y,
+			correctPlaces.topSide.x, correctPlaces.topSide.y);
+		if (distance < correctPlaces.radius) {
+			intersectPoint.copy(correctPlaces.topSide);
+			decalGeometry = new DecalGeometry(
+				patientObj.children[0].children[0], // it has to be a THREE.Mesh
+				intersectPoint, 				// THREE.Vector3 in world coordinates  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
+			);
+			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
+			scene.add(padMesh);
+			popupRezult = true;
+			setTimeout(addPopup, 2000);
+			return;
+		}
+		//bottomSide
+		distance = CalculateDistance(intersectPoint.x, intersectPoint.y,
+			correctPlaces.bottomSide.x, correctPlaces.bottomSide.y);
+		if (distance < correctPlaces.radius) {
+			intersectPoint.copy(correctPlaces.bottomSide);
+			decalGeometry = new DecalGeometry(
+				patientObj.children[0].children[0], // it has to be a THREE.Mesh
+				intersectPoint, 				// THREE.Vector3 in world coordinates  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
+			);
+			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
+			scene.add(padMesh);
+			popupRezult = true;
+			setTimeout(addPopup, 2000);
+			return;
+		}
+
 		padMesh = new Mesh(decalGeometry, decalTextureMaterial);
 		scene.add(padMesh);
-		params.isActive = false;
 		setTimeout(addPopup, 2000);
 	}
 
@@ -50471,15 +50540,6 @@
 		return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 	}
 
-	function FindMin(a, b, c, d) {
-		let rezult = a;
-		if (b < rezult) rezult = b;
-		if (c < rezult) rezult = c;
-		if (d < rezult) rezult = d;
-
-		return rezult;
-	}
-
 	function createPopupPlane() {
 		const popupPlane = new PlaneGeometry(params.sceneWidth, params.sceneHeight, 10.0);
 		const loader = new TextureLoader();
@@ -50500,16 +50560,21 @@
 		document.getElementById('popupTitle').style.display = 'block';
 		document.getElementById('popupText').style.display = 'block';
 		popupBtn.style.display = 'block';
-		if (popupShowCount == 0) {
+		if (popupRezult === undefined) {
 			document.getElementById('popupTitle').value = popupTexts.introTitle;
 			document.getElementById('popupText').value = popupTexts.introText;
+			return;
 		}
-		if (popupShowCount > 0) {
-			document.getElementById('popupTitle').value = popupTexts.setPadTitle;
-			document.getElementById('popupText').value = popupTexts.setPadText;
+		if (popupRezult) {
+			document.getElementById('popupTitle').value = popupTexts.correctPadTitle;
+			document.getElementById('popupText').value = popupTexts.correctPadText;
+			return;
 		}
-
-		popupShowCount++;
+		if (!popupRezult) {
+			document.getElementById('popupTitle').value = popupTexts.uncorrectPadTitle;
+			document.getElementById('popupText').value = popupTexts.uncorrectPadText;
+			return;
+		}
 	}
 
 	function removePopup() {
