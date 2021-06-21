@@ -50162,7 +50162,7 @@
 			yTop: 0.125,
 			yMoveScale: 0.3,
 			x1: -30.0, y1: 7.0,
-			x2: -24.0, y2: 10.0,
+			x2: -24.0, y2: 9.6,
 			zAngle: 40.0 * Math.PI / 180.0,
 			xAngle: -10.0 * Math.PI / 180.0
 		},
@@ -50252,6 +50252,7 @@
 			);
 
 			//pad
+			/*
 			fbxLoader = new FBXLoader();
 			fbxLoader.setPath(objectsParams.modelPath);
 			fbxLoader.load(
@@ -50262,7 +50263,8 @@
 					object.rotation.setFromVector3(objectsParams.pad.rotation);
 					scene.add(object);
 				}
-			);
+			)
+			*/
 			
 			//decal material
 			decalMaterial = new MeshPhongMaterial({
@@ -50432,14 +50434,7 @@
 			correctPlaces.topBiceps.x, correctPlaces.topBiceps.y);
 		if (distance < correctPlaces.radius) {
 			intersectPoint.copy(correctPlaces.topBiceps);
-			decalGeometry = new DecalGeometry(
-				patientObj.children[0].children[0], // it has to be a THREE.Mesh
-				intersectPoint, 				// THREE.Vector3 in world coordinates  
-				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
-			);
-			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
-			scene.add(padMesh);
+			createNewPadMeshAndAddOnScene(intersectPoint);
 			popupRezult = true;
 			setTimeout(addPopup, 2000);
 			return;
@@ -50449,14 +50444,7 @@
 			correctPlaces.bottomBiceps.x, correctPlaces.bottomBiceps.y);
 		if (distance < correctPlaces.radius) {
 			intersectPoint.copy(correctPlaces.bottomBiceps);
-			decalGeometry = new DecalGeometry(
-				patientObj.children[0].children[0], // it has to be a THREE.Mesh
-				intersectPoint, 				// THREE.Vector3 in world coordinates  
-				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
-			);
-			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
-			scene.add(padMesh);
+			createNewPadMeshAndAddOnScene(intersectPoint);
 			popupRezult = true;
 			setTimeout(addPopup, 2000);
 			return;
@@ -50466,14 +50454,7 @@
 			correctPlaces.topSide.x, correctPlaces.topSide.y);
 		if (distance < correctPlaces.radius) {
 			intersectPoint.copy(correctPlaces.topSide);
-			decalGeometry = new DecalGeometry(
-				patientObj.children[0].children[0], // it has to be a THREE.Mesh
-				intersectPoint, 				// THREE.Vector3 in world coordinates  
-				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
-			);
-			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
-			scene.add(padMesh);
+			createNewPadMeshAndAddOnScene(intersectPoint);
 			popupRezult = true;
 			setTimeout(addPopup, 2000);
 			return;
@@ -50483,14 +50464,7 @@
 			correctPlaces.bottomSide.x, correctPlaces.bottomSide.y);
 		if (distance < correctPlaces.radius) {
 			intersectPoint.copy(correctPlaces.bottomSide);
-			decalGeometry = new DecalGeometry(
-				patientObj.children[0].children[0], // it has to be a THREE.Mesh
-				intersectPoint, 				// THREE.Vector3 in world coordinates  
-				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
-				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
-			);
-			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
-			scene.add(padMesh);
+			createNewPadMeshAndAddOnScene(intersectPoint);
 			popupRezult = true;
 			setTimeout(addPopup, 2000);
 			return;
@@ -50499,6 +50473,17 @@
 		padMesh = new Mesh(decalGeometry, decalTextureMaterial);
 		scene.add(padMesh);
 		setTimeout(addPopup, 2000);
+	}
+
+	function createNewPadMeshAndAddOnScene(intersect) {
+		decalGeometry = new DecalGeometry(
+				patientObj.children[0].children[0], // it has to be a THREE.Mesh
+				intersect, 				// THREE.Vector3 in world coordinates  
+				objectsParams.padPrjection.direction, 							// THREE.Vector3 specifying the orientation of the decal  
+				objectsParams.padPrjection.currentsize	// THREE.Vector3 specifying the size of the decal box  
+			);
+			padMesh = new Mesh(decalGeometry, decalTextureMaterial);
+			scene.add(padMesh);
 	}
 
 	function animate() {
