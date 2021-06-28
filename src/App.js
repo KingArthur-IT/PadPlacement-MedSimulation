@@ -59,7 +59,7 @@ let objectsParams = {
 		radius: 6,
 		segments: 32,
 		position: 	new THREE.Vector3(-35, 11, 10),
-		color: 		new THREE.Color(0xffd778),
+		color: 		new THREE.Color(0xFFFF00),
 		base: 0.2, //0.2 - not glow; -0.1 - glow max light
 		pow: 10.0
 	}
