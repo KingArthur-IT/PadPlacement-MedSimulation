@@ -60,7 +60,7 @@ let objectsParams = {
 		segments: 32.0,
 		position: 	new THREE.Vector3(-35.0, 11.0, 20.0),
 		color: 		new THREE.Color(0xFFFF00),
-		base: -0.2, //-0.2 - min glow; 0.1 - glow max light
+		base: 0.1, //-0.2 - min glow; 0.1 - glow max light
 		pow: 6.0
 	}
 }
@@ -354,6 +354,7 @@ function onMouseMove(event) {
 		let distance = CalculateDistance(mouse.x, mouse.y,
 			lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
 		objectsParams.glowing.base = 0.1 - distance * 0.2;
+		console.log(objectsParams.glowing.base)
 		createGlow();
 	}
 }
