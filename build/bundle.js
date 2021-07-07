@@ -50120,12 +50120,12 @@
 			direction: 		new Euler(0, 0, 0)
 		},
 		glowing: {
-			radius: 6.0,
+			radius: 10.0,
 			segments: 32.0,
 			position: 	new Vector3(-35.0, 11.0, 10.0),
 			color: 		new Color(0xffff00),
-			base: 0.2, //0.2 - not glow; -0.1 - glow max light
-			pow: 10.0
+			base: 0.0, //0.2 - not glow; -0.1 - glow max light
+			pow: 0.0
 		}
 	};
 	//const params of bounds near two different body parts 
@@ -50208,7 +50208,7 @@
 			scene.add(directionalLight);
 
 			//renderer
-			renderer = new WebGLRenderer({ canvas: canvas, alpha: true });
+			renderer = new WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
 			renderer.setClearColor(0xffffff);
 
 			//Load background texture
@@ -50247,7 +50247,7 @@
 					object.scale.copy(objectsParams.lightBulb.scale);
 					object.position.copy(objectsParams.lightBulb.position);
 					object.rotation.setFromVector3(objectsParams.lightBulb.rotation);
-					scene.add(object);
+					//scene.add(object);
 				}
 			);
 
@@ -50417,8 +50417,7 @@
 			//2.for light bulb glowing
 			let distance = CalculateDistance(mouse.x, mouse.y,
 				lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
-			objectsParams.glowing.base = distance * 0.2 - 0.1;
-			console.log("glow");
+			//objectsParams.glowing.base = 5.0; //distance * 0.2 - 0.1;
 			createGlow();
 		}
 	}
@@ -50512,18 +50511,13 @@
 			},
 			vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
 			fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-			side: FrontSide,
+			side: BackSide,
 			blending: AdditiveBlending,
 			transparent: true
 		}   );
 			
-		console.log(scene);
-		console.log(sphereGeom);
-		console.log(glowMaterial);
 		glowObj = new Mesh(sphereGeom.clone(), glowMaterial.clone());
-		console.log(glowObj);
 		glowObj.position.copy(objectsParams.glowing.position);
-		scene.add(glowObj);
 	}
 
 	function CalculateDistance(x1, y1, x2, y2) {

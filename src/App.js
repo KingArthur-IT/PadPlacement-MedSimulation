@@ -354,7 +354,6 @@ function onMouseMove(event) {
 		let distance = CalculateDistance(mouse.x, mouse.y,
 			lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
 		objectsParams.glowing.base = distance * 0.2 - 0.1;
-		console.log("glow")
 		createGlow();
 	}
 }
@@ -454,18 +453,13 @@ function createGlow() {
 		},
 		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
 		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-		side: THREE.FrontSide,
+		side: THREE.BackSide,
 		blending: THREE.AdditiveBlending,
 		transparent: true
 	}   );
 		
-	console.log(scene)
-	console.log(sphereGeom)
-	console.log(glowMaterial)
 	glowObj = new THREE.Mesh(sphereGeom.clone(), glowMaterial.clone());
-	console.log(glowObj)
 	glowObj.position.copy(objectsParams.glowing.position);
-	scene.add(glowObj);
 }
 
 function CalculateDistance(x1, y1, x2, y2) {
