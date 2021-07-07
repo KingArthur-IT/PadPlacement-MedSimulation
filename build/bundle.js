@@ -50120,12 +50120,12 @@
 			direction: 		new Euler(0, 0, 0)
 		},
 		glowing: {
-			radius: 10.0,
+			radius: 6.0,
 			segments: 32.0,
-			position: 	new Vector3(-35.0, 11.0, 10.0),
-			color: 		new Color(0xffff00),
-			base: 0.0, //0.2 - not glow; -0.1 - glow max light
-			pow: 0.0
+			position: 	new Vector3(-35.0, 11.0, 20.0),
+			color: 		new Color(0xFFFF00),
+			base: 0.1, //0.2 - not glow; -0.1 - glow max light
+			pow: 6.0
 		}
 	};
 	//const params of bounds near two different body parts 
@@ -50208,7 +50208,7 @@
 			scene.add(directionalLight);
 
 			//renderer
-			renderer = new WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+			renderer = new WebGLRenderer({ canvas: canvas, alpha: true });
 			renderer.setClearColor(0xffffff);
 
 			//Load background texture
@@ -50247,7 +50247,7 @@
 					object.scale.copy(objectsParams.lightBulb.scale);
 					object.position.copy(objectsParams.lightBulb.position);
 					object.rotation.setFromVector3(objectsParams.lightBulb.rotation);
-					//scene.add(object);
+					scene.add(object);
 				}
 			);
 
@@ -50415,9 +50415,9 @@
 			isPadMeshOnScene = true;
 
 			//2.for light bulb glowing
-			let distance = CalculateDistance(mouse.x, mouse.y,
+			CalculateDistance(mouse.x, mouse.y,
 				lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
-			//objectsParams.glowing.base = 5.0; //distance * 0.2 - 0.1;
+			//objectsParams.glowing.base = distance * 0.2 - 0.1;
 			createGlow();
 		}
 	}
@@ -50518,6 +50518,7 @@
 			
 		glowObj = new Mesh(sphereGeom.clone(), glowMaterial.clone());
 		glowObj.position.copy(objectsParams.glowing.position);
+		scene.add(glowObj);
 	}
 
 	function CalculateDistance(x1, y1, x2, y2) {

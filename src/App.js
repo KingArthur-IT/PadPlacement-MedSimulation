@@ -58,10 +58,10 @@ let objectsParams = {
 	glowing: {
 		radius: 6.0,
 		segments: 32.0,
-		position: 	new THREE.Vector3(-35.0, 11.0, 10.0),
-		color: 		new THREE.Color(0xffff00),
-		base: 0.2, //0.2 - not glow; -0.1 - glow max light
-		pow: 10.0
+		position: 	new THREE.Vector3(-35.0, 11.0, 20.0),
+		color: 		new THREE.Color(0xFFFF00),
+		base: 0.1, //0.2 - not glow; -0.1 - glow max light
+		pow: 6.0
 	}
 }
 //const params of bounds near two different body parts 
@@ -353,7 +353,7 @@ function onMouseMove(event) {
 		//2.for light bulb glowing
 		let distance = CalculateDistance(mouse.x, mouse.y,
 			lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
-		objectsParams.glowing.base = distance * 0.2 - 0.1;
+		//objectsParams.glowing.base = distance * 0.2 - 0.1;
 		createGlow();
 	}
 }
@@ -460,6 +460,7 @@ function createGlow() {
 		
 	glowObj = new THREE.Mesh(sphereGeom.clone(), glowMaterial.clone());
 	glowObj.position.copy(objectsParams.glowing.position);
+	scene.add(glowObj)
 }
 
 function CalculateDistance(x1, y1, x2, y2) {
