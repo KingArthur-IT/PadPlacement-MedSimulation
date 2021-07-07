@@ -50120,10 +50120,10 @@
 			direction: 		new Euler(0, 0, 0)
 		},
 		glowing: {
-			radius: 6,
-			segments: 32,
-			position: 	new Vector3(-35, 11, 10),
-			color: 		new Color(0xFFFF00),
+			radius: 6.0,
+			segments: 32.0,
+			position: 	new Vector3(-35.0, 11.0, 10.0),
+			color: 		new Color(0xffff00),
 			base: 0.2, //0.2 - not glow; -0.1 - glow max light
 			pow: 10.0
 		}
@@ -50516,7 +50516,11 @@
 			transparent: true
 		}   );
 			
-		glowObj = new Mesh( sphereGeom.clone(), glowMaterial.clone() );
+		console.log(scene);
+		console.log(sphereGeom);
+		console.log(glowMaterial);
+		glowObj = new Mesh(sphereGeom.clone(), glowMaterial.clone());
+		console.log(glowObj);
 		glowObj.position.copy(objectsParams.glowing.position);
 		scene.add(glowObj);
 	}

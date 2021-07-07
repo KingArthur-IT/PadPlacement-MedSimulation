@@ -458,7 +458,11 @@ function createGlow() {
 		transparent: true
 	}   );
 		
-	glowObj = new THREE.Mesh( sphereGeom.clone(), glowMaterial.clone() );
+	console.log(scene)
+	console.log(sphereGeom)
+	console.log(glowMaterial)
+	glowObj = new THREE.Mesh(sphereGeom.clone(), glowMaterial.clone());
+	console.log(glowObj)
 	glowObj.position.copy(objectsParams.glowing.position);
 	scene.add(glowObj);
 }
