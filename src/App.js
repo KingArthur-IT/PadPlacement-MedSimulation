@@ -354,6 +354,7 @@ function onMouseMove(event) {
 		let distance = CalculateDistance(mouse.x, mouse.y,
 			lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
 		objectsParams.glowing.base = distance * 0.2 - 0.1;
+		console.log("glow")
 		createGlow();
 	}
 }
