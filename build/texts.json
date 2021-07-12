@@ -2,7 +2,7 @@ popupData = `{
     "introTitle" : "Message", 
     "introText" : "Click the OK button to grab the pad and start moving it. Click the mouse button to place the pad in the selected location.",
     "correctPadTitle": "Message",
-    "correctPadText": "Good work! The split pad is now positioned properly. Click OK to continue.",
+    "correctPadText": "Good work! The split pad is now positioned properly. The split pad positioned on the body closest to the surgical site will show the generator pad indicator as a green light and provide the easiest path for current to flow thus the light bulb glows brightly. Click OK to continue.",
     "uncorrectPadTitle": "Message",
-    "uncorrectPadText": " Try again."
+    "uncorrectPadText": " Incorrect, please try again. The pad is either too far from the surgical site or placed improperly."
 }`

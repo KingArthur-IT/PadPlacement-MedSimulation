@@ -50087,7 +50087,7 @@
 	let params = {
 		sceneWidth: 850,
 		sceneHeight: 450,
-		bgSrc: './assets/img/interaction_bg.jpg',
+		bgSrc: './assets/img/interaction_bg.jpeg',
 		popupSrc: './assets/img/popup.png',
 		padTextureSrc: './assets/img/pad.png',
 		padPrjColor: 0x00ff00,
@@ -50099,13 +50099,13 @@
 			patientObj: 'body.obj',
 			patientMtl: 'body.mtl',
 			scale : 	new Vector3(2, 2, 2),
-			position : 	new Vector3(0, -2, 0),
+			position : 	new Vector3(0, 1, 0),
 			rotation : 	new Vector3(Math.PI / 2.0, Math.PI / 2.0, 0)
 		},
 		lightBulb: {
 			lightBulbObj: 'LightBulb_01.fbx',
 			scale : 	new Vector3(1.5, 1.5, 1.5),
-			position : 	new Vector3(-37, 10, 10),
+			position : 	new Vector3(-37, 12, 10),
 			rotation : 	new Vector3(0, 0, 0)
 		},
 		pad: {
@@ -50122,7 +50122,7 @@
 		glowing: {
 			radius: 6.0,
 			segments: 32.0,
-			position: 	new Vector3(-35.0, 11.0, 20.0),
+			position: 	new Vector3(-35.0, 13.0, 20.0),
 			color: 		new Color(0xFFFF00),
 			base: 0.1, //-0.2 - min glow; 0.1 - glow max light
 			pow: 6.0
@@ -50135,58 +50135,58 @@
 		upperLeg: {
 			xLeft: 0.0,
 			xRight: 0.25,
-			yTop: 0.0,
-			yBottom: -0.085
+			yTop: 0.1,
+			yBottom: -0.045
 		},
 		bottomLeg: {
 			xLeft: 0.0,
 			xRight: 0.25,
-			yTop: -0.09,
-			yBottom: -0.2
+			yTop: -0.025,
+			yBottom: -0.115
 		},
 		upperBody: {
 			xLeft: -0.48,
 			xRight: -0.31,
-			yTop: 0.13,
-			yBottom: 0.03
+			yTop: 0.2,
+			yBottom: 0.12
 		},
 		lowerBody: {
 			xLeft: -0.48,
 			xRight: -0.31,
-			yTop: -0.25,
-			yBottom: -0.34
+			yTop: -0.15,
+			yBottom: -0.24
 		},
 		upperArm: {
 			xLeft: -0.48,
 			xRight: -0.12,
-			yTop: 0.125,
+			yTop: 0.225,
 			yMoveScale: 0.3,
-			x1: -30.0, y1: 7.0,
-			x2: -24.0, y2: 9.6,
+			x1: -30.0, y1: 11,
+			x2: -24.0, y2: 13,
 			zAngle: 40.0 * Math.PI / 180.0,
 			xAngle: -10.0 * Math.PI / 180.0
 		},
 		lowerArm: {
 			xLeft: -0.48,		
 			xRight: -0.12,
-			yTop: -0.33,
+			yTop: -0.23,
 			yMoveScale: 0.3,
-			x1: -30.0, y1: -15.0,
-			x2: -23, y2: -17.0,
+			x1: -30.0, y1: -12.0,
+			x2: -23, y2: -14.0,
 			zAngle: -40.0 * Math.PI / 180.0,
 			xAngle: 10.0 * Math.PI / 180.0
 		}
 	};
 	const correctPlaces = {
-		topBiceps: 		new Vector3(-24.0, 10.0, 1.0),
-		bottomBiceps: 	new Vector3(-24.0, -16.5, 0.8),
-		topSide: 		new Vector3(-17.0, 1.0, 4.0),
-		bottomSide: 	new Vector3(-17.0, -7.5, 4.0),
+		topBiceps: 		new Vector3(-24.0, 12.0, 1.0),
+		bottomBiceps: 	new Vector3(-24.0, -12.0, 0.8),
+		topSide: 		new Vector3(-17.0, 4.0, 4.0),
+		bottomSide: 	new Vector3(-17.0, -5.0, 4.0),
 		radius: 5.0
 	};
 	const lightIntensityPoint = {
 		chin: {
-			x: -0.65, y: -0.1
+			x: -0.65, y: -0.01
 		}
 	};
 
@@ -50418,7 +50418,6 @@
 			let distance = CalculateDistance(mouse.x, mouse.y,
 				lightIntensityPoint.chin.x, lightIntensityPoint.chin.y);
 			objectsParams.glowing.base = 0.1 - distance * 0.2;
-			console.log(objectsParams.glowing.base);
 			createGlow();
 		}
 	}
