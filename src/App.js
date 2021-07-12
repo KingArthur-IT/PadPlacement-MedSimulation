@@ -485,7 +485,7 @@ function createPopupPlane() {
 		transparent: true
 	});    
 	popupPlaneMesh = new THREE.Mesh(popupPlane, popupMaterial);
-	popupPlaneMesh.scale.set(0.11, 0.11, 0.11)
+	popupPlaneMesh.scale.set(0.105, 0.105, 0.105)
 	popupPlaneMesh.position.z = 10;
 }
 
