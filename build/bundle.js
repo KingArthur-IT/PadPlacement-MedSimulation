@@ -50534,7 +50534,7 @@
 			transparent: true
 		});    
 		popupPlaneMesh = new Mesh(popupPlane, popupMaterial);
-		popupPlaneMesh.scale.set(0.1, 0.1, 0.1);
+		popupPlaneMesh.scale.set(0.11, 0.11, 0.11);
 		popupPlaneMesh.position.z = 10;
 	}
 
